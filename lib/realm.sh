@@ -205,6 +205,17 @@ install_realm() {
 
             # 比较版本并询问更新
             if ! compare_and_ask_update "$current_version" "$LATEST_VERSION"; then
+                # 程序已存在但服务文件缺失时，补生成服务文件
+                if [ ! -f "$SYSTEMD_PATH" ] && [ ! -f /etc/init.d/realm ]; then
+                    echo -e "${YELLOW}检测到 realm 服务文件缺失，正在补充生成...${NC}"
+                    if [ -f "$CONFIG_PATH" ]; then
+                        # 保留现有配置，只补服务文件
+                        generate_service_file
+                        svc_enable
+                    else
+                        start_empty_service
+                    fi
+                fi
                 return 0
             fi
         fi
